@@ -1,46 +1,71 @@
 import { useState, useEffect } from "react";
-import ContactForm from "./components/ContactForm/ContactForm";
-import ContactList from "./components/ContactList/ContactList";
-import SearchBox from "./components/SearchBox/SearchBox";
-import "./App.module.css";
+import SearchBar from "./components/SearchBar/SearchBar";
+import ImageGallery from "./components/ImageGallery/ImageGallery";
+import Loader from "./components/Loader/Loader";
+import ErrorMessage from "./components/ErrorMessage/ErrorMessage";
+import LoadMoreBtn from "./components/LoadMoreBtn/LoadMoreBtn";
+import ImageModal from "./components/ImageModal/ImageModal";
+import { fetchImages } from "./api";
+import toast, { Toaster } from "react-hot-toast";
 
 const App = () => {
-  const [contacts, setContacts] = useState(() => {
-    const savedContacts = localStorage.getItem("contacts");
-    return savedContacts
-      ? JSON.parse(savedContacts)
-      : [
-          { id: "id-1", name: "Rosie Simpson", number: "459-12-56" },
-          { id: "id-2", name: "Hermione Kline", number: "443-89-12" },
-          { id: "id-3", name: "Eden Clements", number: "645-17-79" },
-          { id: "id-4", name: "Annie Copeland", number: "227-91-26" },
-        ];
-  });
+  const [query, setQuery] = useState("");
+  const [images, setImages] = useState([]);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [hasMore, setHasMore] = useState(false);
 
-  const [filter, setFilter] = useState("");
   useEffect(() => {
-    localStorage.setItem("contacts", JSON.stringify(contacts));
-  }, [contacts]);
+    if (!query) return;
 
-  const filteredContacts = contacts.filter((contact) =>
-    contact.name.toLowerCase().includes(filter.toLowerCase())
-  );
-  const deleteContact = (id) => {
-    setContacts((prevContacts) =>
-      prevContacts.filter((contact) => contact.id !== id)
-    );
+    const loadImages = async () => {
+      setLoading(true);
+      setError("");
+
+      try {
+        const data = await fetchImages(query, page);
+        if (data.results.length === 0) {
+          toast.error("No images found!");
+        }
+        setImages((prev) =>
+          page === 1 ? data.results : [...prev, ...data.results]
+        );
+        setHasMore(data.results.length > 0);
+      } catch (err) {
+        setError("Failed to load images.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadImages();
+  }, [query, page]);
+
+  const handleSearch = (newQuery) => {
+    setQuery(newQuery);
+    setImages([]);
+    setPage(1);
   };
+
+  const handleLoadMore = () => setPage((prev) => prev + 1);
 
   return (
     <div>
-      <h1>Phonebook</h1>
-      <ContactForm addContact={setContacts} />
-      <SearchBox value={filter} onChange={setFilter} />
-      <ContactList
-        contacts={filteredContacts}
-        onDeleteContact={deleteContact}
+      <Toaster position="top-right" />
+      <SearchBar onSubmit={handleSearch} />
+      {error && <ErrorMessage message={error} />}
+      <ImageGallery images={images} onImageClick={setSelectedImage} />
+      {loading && <Loader />}
+      {hasMore && !loading && <LoadMoreBtn onClick={handleLoadMore} />}
+      <ImageModal
+        image={selectedImage}
+        isOpen={!!selectedImage}
+        onClose={() => setSelectedImage(null)}
       />
     </div>
   );
 };
+
 export default App;
