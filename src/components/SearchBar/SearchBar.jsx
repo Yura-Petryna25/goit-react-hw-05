@@ -1,35 +1,29 @@
 import { useState } from "react";
-import toast from "react-hot-toast";
 import styles from "./SearchBar.module.css";
 
 const SearchBar = ({ onSubmit }) => {
   const [query, setQuery] = useState("");
 
-  const handleChange = (e) => setQuery(e.target.value);
-
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (query.trim() === "") {
-      toast.error("Please enter a search query.");
-      return;
-    }
+    if (query.trim() === "") return;
     onSubmit(query);
     setQuery("");
   };
 
   return (
-    <header className={styles.searchBar}>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          value={query}
-          onChange={handleChange}
-          placeholder="Search images and photos"
-          autoFocus
-        />
-        <button type="submit">Search</button>
-      </form>
-    </header>
+    <form onSubmit={handleSubmit} className={styles.searchForm}>
+      <input
+        type="text"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="Search movies..."
+        className={styles.input}
+      />
+      <button type="submit" className={styles.button}>
+        Search
+      </button>
+    </form>
   );
 };
 
