@@ -1,18 +1,17 @@
 import { useState } from "react";
 import styles from "./SearchBar.module.css";
 
-const SearchBar = ({ onSubmit }) => {
+const SearchBar = ({ onSearch }) => {
   const [query, setQuery] = useState("");
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (query.trim() === "") return;
-    onSubmit(query);
-    setQuery("");
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    if (!query.trim()) return;
+    onSearch(query);
   };
 
   return (
-    <form onSubmit={handleSubmit} className={styles.searchForm}>
+    <form onSubmit={handleSubmit} className={styles.form}>
       <input
         type="text"
         value={query}
