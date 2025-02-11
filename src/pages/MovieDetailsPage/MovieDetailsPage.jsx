@@ -1,4 +1,4 @@
-import { useEffect, useState, Suspense, lazy } from "react";
+import { useEffect, useState, Suspense, useRef } from "react";
 import { useParams, Link, Outlet, useLocation } from "react-router-dom";
 import axios from "axios";
 import styles from "./MovieDetailsPage.module.css";
@@ -15,8 +15,7 @@ const MovieDetailsPage = () => {
   const { movieId } = useParams();
   const [movie, setMovie] = useState(null);
   const location = useLocation();
-  const backLink = location.state?.from || "/movies";
-
+  const backLinkRef = useRef(location.state?.from || "/movies");
   useEffect(() => {
     axios
       .get(`${API_URL}${movieId}?api_key=${API_KEY}`)
@@ -28,7 +27,7 @@ const MovieDetailsPage = () => {
 
   return (
     <div className={styles.container}>
-      <Link to={backLink} className={styles.goBack}>
+      <Link to={backLinkRef.current} className={styles.goBack}>
         ← Go back
       </Link>
       <div className={styles.details}>
@@ -47,12 +46,12 @@ const MovieDetailsPage = () => {
       <h2>Additional Information</h2>
       <ul>
         <li>
-          <Link to="cast" state={{ from: backLink }}>
+          <Link to="cast" state={{ from: backLinkRef.current }}>
             Cast
           </Link>
         </li>
         <li>
-          <Link to="reviews" state={{ from: backLink }}>
+          <Link to="reviews" state={{ from: backLinkRef.current }}>
             Reviews
           </Link>
         </li>
